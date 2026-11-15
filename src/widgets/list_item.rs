@@ -1,4 +1,6 @@
-use ratatui::{buffer::Buffer, layout::Rect, widgets::Widget};
+use ratatui::buffer::Buffer;
+use ratatui::layout::Rect;
+use ratatui::widgets::Widget;
 
 pub struct ListItem {
     pub name: String,

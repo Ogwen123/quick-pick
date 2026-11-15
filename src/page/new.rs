@@ -1,10 +1,19 @@
-use ratatui::{buffer::Buffer, layout::Rect, widgets::StatefulWidget};
+use ratatui::buffer::Buffer;
+use ratatui::layout::Rect;
+use ratatui::widgets::StatefulWidget;
 
 pub struct NewPick {}
 
+#[derive(Default)]
 pub struct NewPickState {
     name: String,
     path: String,
+}
+
+impl NewPick {
+    pub fn new() -> Self {
+        NewPick {}
+    }
 }
 
 impl StatefulWidget for NewPick {
