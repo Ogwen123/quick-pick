@@ -14,9 +14,9 @@ use ratatui::crossterm::ExecutableCommand;
 use ratatui::crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::Stylize;
+use ratatui::text::{Line, Text};
 use ratatui::widgets::{ListState, Paragraph, StatefulWidget, Widget};
 use ratatui::{DefaultTerminal, Frame};
-use ratatui::text::{Line, Text};
 
 pub enum Location {
     NewPick,
@@ -73,7 +73,7 @@ impl App {
 
                 let [error_box, remaining] = frame.area().layout(&vertical);
                 remaining_area = remaining;
-                
+
                 Paragraph::new(Text::from(vec![Line::from(""), Line::from(str.clone())]))
                     .centered()
                     .black()
@@ -103,8 +103,8 @@ impl App {
                 KeyCode::Up => self.pick_list_state.scroll_up_by(2),
                 KeyCode::Down => self.pick_list_state.scroll_down_by(2),
                 KeyCode::Enter => match self.pick_list_state.selected() {
-                    Some(index) => match self.pick_list_items.get(index) {
-                        Some(pick) => pick.pick(&mut self.exit),
+                    Some(index) => match self.pick_list_items.clone().get(index) {
+                        Some(pick) => pick.pick(self),
                         None => {}
                     },
                     None => {}
@@ -133,10 +133,10 @@ impl App {
         if split.len() != 2 {
             self.error_string = Some(String::from("Corrupted or empty picks file."))
         }
-        
+
         let raw_picks = split[0];
         let raw_editors = split[1];
-        
+
         self.pick_list_items = match serde_json::from_str(raw_picks) {
             Ok(res) => res,
             Err(err) => {
@@ -148,7 +148,10 @@ impl App {
         self.editors = match serde_json::from_str(raw_editors) {
             Ok(res) => res,
             Err(err) => {
-                self.error_string = Some(format!("Failed to deserialise editors. {} {raw_editors}", err));
+                self.error_string = Some(format!(
+                    "Failed to deserialise editors. {} {raw_editors}",
+                    err
+                ));
                 return;
             }
         };
