@@ -1,5 +1,5 @@
 use std::env::home_dir;
-use std::fs::{OpenOptions, create_dir_all};
+use std::fs::{File as FsFile, OpenOptions, create_dir_all};
 use std::io::{Read, Write};
 use std::path::PathBuf;
 
@@ -45,6 +45,19 @@ impl File {
 
     fn create_parent() -> Result<(), String> {
         create_dir_all(File::folder_path()?).map_err(|e| e.to_string())
+    }
+
+    pub fn create_with_ascii_char(&self, content: char) -> Result<(), String> {
+        if !content.is_ascii() {
+            return Err(String::from("Provided char must be ascii"))
+        }
+        if !self.path()?.exists() {
+            File::create_parent();
+            let mut file = FsFile::create(self.path()?).map_err(|x| x.to_string())?;
+            file.write(&[content as u8]).map_err(|x| x.to_string())?;
+        }
+
+        Ok(())
     }
 }
 
