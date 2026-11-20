@@ -35,11 +35,13 @@ impl Pick {
         let mut cmd = match build_command(&editor.command, &self.path) {
             Ok(res) => res,
             Err(err) => {
-                app.error_string = Some(format!("Could not build command for selected pick. {}", err));
-                return
+                app.error_string = Some(format!(
+                    "Could not build command for selected pick. {}",
+                    err
+                ));
+                return;
             }
         };
-
 
         cmd.stdin(Stdio::null())
             .stdout(Stdio::null())
@@ -59,13 +61,13 @@ impl Pick {
             cmd.creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP);
         }
 
-        
-
         match cmd.spawn() {
             Ok(_) => app.exit = true,
             Err(err) => {
-                app.error_string =
-                    Some(format!("Could not run command for selected pick. {:?}", cmd));
+                app.error_string = Some(format!(
+                    "Could not run command for selected pick. {:?}",
+                    cmd
+                ));
                 return;
             }
         }
@@ -101,9 +103,9 @@ impl Pick {
 fn build_command(template: &String, path: &String) -> Result<Command, String> {
     let mut parts = template.split_whitespace();
     let program = parts.next().ok_or("Empty command")?;
-    
-    let resolved_program = which::which(program)
-        .map_err(|e| format!("Could not find '{}': {}", program, e))?;
+
+    let resolved_program =
+        which::which(program).map_err(|e| format!("Could not find '{}': {}", program, e))?;
 
     let mut cmd = Command::new(resolved_program);
 

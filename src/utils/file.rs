@@ -49,7 +49,7 @@ impl File {
 
     pub fn create_with_ascii_char(&self, content: char) -> Result<(), String> {
         if !content.is_ascii() {
-            return Err(String::from("Provided char must be ascii"))
+            return Err(String::from("Provided char must be ascii"));
         }
         if !self.path()?.exists() {
             File::create_parent();

@@ -122,9 +122,9 @@ impl App {
     fn load_picks(&mut self) {
         if let Err(err) = File::Picks.create_with_ascii_char('\x1d') {
             self.error_string = Some(format!("Error creating data file. {}", err));
-            return
+            return;
         };
-        
+
         let data = match read_file(File::Picks) {
             Ok(res) => res,
             Err(err) => {
