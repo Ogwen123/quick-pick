@@ -7,6 +7,7 @@ use std::process::{Command, Stdio};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Pick {
+    pub id: String,
     pub name: String,
     pub path: String,
     pub editor: String,
@@ -45,6 +46,7 @@ impl Pick {
             .stdout(Stdio::null())
             .stderr(Stdio::null());
 
+        // spawn a detached process
         #[cfg(unix)]
         {
             use std::os::unix::process::CommandExt;
@@ -58,8 +60,6 @@ impl Pick {
             const CREATE_NEW_PROCESS_GROUP: u32 = 0x00000200;
             cmd.creation_flags(DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP);
         }
-
-        
 
         match cmd.spawn() {
             Ok(_) => app.exit = true,

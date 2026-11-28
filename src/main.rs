@@ -2,6 +2,7 @@ mod page;
 mod pick;
 mod utils;
 
+use std::default::Default;
 use std::io;
 use std::io::stderr;
 
@@ -19,14 +20,16 @@ use ratatui::widgets::{ListState, Paragraph, StatefulWidget, Widget};
 use ratatui::{DefaultTerminal, Frame};
 
 pub enum Location {
-    NewPick,
-    Picker,
+    NewPick(NewPickState),
+    EditPick/*(EditPickState)*/,
+    Picker(ListState),
+    NewEditor,
+    EditEditor
 }
 
 impl Default for Location {
     fn default() -> Self {
-        Location::Picker
-    }
+        Location::Picker(ListState::default().with_selected(Some(0)))    }
 }
 
 pub struct App {
@@ -34,19 +37,15 @@ pub struct App {
     exit: bool,
     editors: Vec<Editor>,
     pick_list_items: Vec<Pick>,
-    pick_list_state: ListState,
-    new_pick_state: NewPickState,
     error_string: Option<String>,
 }
 
 impl Default for App {
     fn default() -> Self {
         Self {
-            location: Location::Picker,
+            location: Location::default(),
             exit: false,
             pick_list_items: Vec::new(),
-            pick_list_state: ListState::default().with_selected(Some(0)),
-            new_pick_state: NewPickState::default(),
             editors: Vec::new(),
             error_string: None,
         }
@@ -83,14 +82,10 @@ impl App {
             None => remaining_area = frame.area(),
         }
 
-        match self.location {
-            Location::Picker => Picker::draw(self, frame, remaining_area),
-            Location::NewPick => NewPick::render(
-                NewPick::new(),
-                frame.area(),
-                frame.buffer_mut(),
-                &mut self.new_pick_state,
-            ),
+        match &mut self.location {
+            Location::Picker(_) => Picker::draw(self, frame, remaining_area),
+            Location::NewPick(_) => NewPick::draw(self, frame, remaining_area),
+            _ => {}
         }
     }
 
@@ -100,17 +95,13 @@ impl App {
         match event {
             Event::Key(res) if res.kind == KeyEventKind::Press => match res.code {
                 KeyCode::Esc => self.exit = true,
-                KeyCode::Up => self.pick_list_state.scroll_up_by(2),
-                KeyCode::Down => self.pick_list_state.scroll_down_by(2),
-                KeyCode::Enter => match self.pick_list_state.selected() {
-                    Some(index) => match self.pick_list_items.clone().get(index) {
-                        Some(pick) => pick.pick(self),
-                        None => {}
-                    },
-                    None => {}
-                },
-                KeyCode::Char('e') => self.exit = true,
-                _ => {}
+                _ => {
+                    match self.location {
+                        Location::Picker(_) => Picker::handle_event(&event, self),
+                        Location::NewPick(_) => NewPick::handle_event(&event, self),
+                        _ => {}
+                    }
+                }
             },
             _ => {}
         }

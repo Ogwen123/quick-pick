@@ -1,4 +1,5 @@
-use crate::App;
+use crossterm::event::Event;
+use crate::{App, Location};
 use crate::pick::Pick;
 use ratatui::Frame;
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -24,8 +25,11 @@ impl Picker {
             .on_magenta()
             .render(title_rect, frame.buffer_mut());
 
-        Self::render_list(frame, list_rect, app);
+        if let Location::Picker(mut state) = app.location {
+            Self::render_list(frame, list_rect, app, &mut state);
 
+        }
+        
         Paragraph::new(Line::from(vec![
             span!("Quit"),
             span!(" Esc").gray().bold(),
@@ -36,15 +40,21 @@ impl Picker {
             span!("Edit"),
             span!(" e").gray().bold(),
             span!(" • ").light_blue(),
+            span!("Edit Editor"),
+            span!(" CTRL + e").gray().bold(),
+            span!(" • ").light_blue(),
             span!("New"),
             span!(" n").gray().bold(),
+            span!(" • ").light_blue(),
+            span!("New Editor"),
+            span!("CTRL + n").gray().bold(),
         ]))
         .centered()
         .gray()
         .render(controls_rect, frame.buffer_mut());
     }
 
-    pub fn render_list(frame: &mut Frame, area: Rect, app: &mut App) {
+    pub fn render_list(frame: &mut Frame, area: Rect, app: &mut App, state: &mut ListState) {
         let mut str_items = app
             .pick_list_items
             .iter()
@@ -67,6 +77,13 @@ impl Picker {
             .repeat_highlight_symbol(true)
             .highlight_symbol("│".light_blue().bold());
 
-        frame.render_stateful_widget(list, area, &mut app.pick_list_state);
+        frame.render_stateful_widget(list, area, state);
+    }
+
+    pub fn handle_event(event: &Event, app: &mut App) {
+        let list_state = match &mut app.location {
+            Location::Picker(state) => state,
+            _ => {panic!("Should not be possible")}
+        };
     }
 }
