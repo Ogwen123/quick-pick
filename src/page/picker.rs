@@ -1,4 +1,4 @@
-use crossterm::event::Event;
+use crossterm::event::{Event, KeyCode, KeyEventKind};
 use crate::{App, Location};
 use crate::pick::Pick;
 use ratatui::Frame;
@@ -7,6 +7,7 @@ use ratatui::macros::span;
 use ratatui::style::{Color, Modifier, Style, Stylize};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{List, ListState, Paragraph, Widget};
+use crate::page::new::NewPick;
 
 pub struct Picker {}
 
@@ -29,7 +30,7 @@ impl Picker {
             Self::render_list(frame, list_rect, app, &mut state);
 
         }
-        
+
         Paragraph::new(Line::from(vec![
             span!("Quit"),
             span!(" Esc").gray().bold(),
@@ -85,5 +86,23 @@ impl Picker {
             Location::Picker(state) => state,
             _ => {panic!("Should not be possible")}
         };
+
+        match event {
+            Event::Key(res) if res.kind == KeyEventKind::Press => match res.code {
+                KeyCode::Up => list_state.scroll_up_by(2),
+                KeyCode::Down => list_state.scroll_down_by(2),
+                KeyCode::Enter => match list_state.selected() {
+                    Some(index) => match app.pick_list_items.clone().get(index) {
+                        Some(pick) => pick.pick(app),
+                        None => {}
+                    },
+                    None => {}
+                },
+                KeyCode::Char('e') => {/*go to edit page*/},
+                _ => {
+                }
+            },
+            _ => {}
+        }
     }
 }
